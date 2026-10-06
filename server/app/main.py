@@ -80,6 +80,6 @@ async def simulate(product_id:int,price:int|None=None,u:User=Depends(user),db:As
     p=await db.scalar(select(TrackedProduct).where(TrackedProduct.id==product_id,TrackedProduct.user_id==u.id));
     if not p: raise HTTPException(404,"not found")
     previous=p.current_price; current=price if price is not None else max(1,(previous or 100000)-10000); p.previous_price=previous; p.current_price=current
-    a=await db.scalar(select(AlertSettings).where(AlertSettings.product_id=p.id)); types=await evaluate(db,p,previous,current,True,a)
+    a=await db.scalar(select(AlertSettings).where(AlertSettings.product_id == p.id)); types=await evaluate(db,p,previous,current,True,a)
     db.add(PriceObservation(product_id=p.id,price=current,observed_at=now(),price_type=p.selected_price_type,available=True,provider="simulator",changed=current!=previous)); await db.commit(); return {"price":current,"alerts":types}
 
